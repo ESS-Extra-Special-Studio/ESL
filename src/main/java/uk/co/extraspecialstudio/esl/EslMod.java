@@ -3,6 +3,8 @@ package uk.co.extraspecialstudio.esl;
 import com.mojang.logging.LogUtils;
 import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
+import uk.co.extraspecialstudio.esl.lobby.EslLobbyManager;
+import uk.co.extraspecialstudio.esl.wave.EslWaveManager;
 
 /**
  * ES Library — backend foundation for the Extra Special Studio stack.
@@ -14,6 +16,8 @@ public final class EslMod {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public EslMod() {
+        EslLobbyManager.init();
+        EslWaveManager.init();
         LOGGER.info("ES Library (ESL) {} loaded", MOD_ID);
     }
 }
