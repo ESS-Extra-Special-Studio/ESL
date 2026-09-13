@@ -211,7 +211,6 @@ tasks.register('copyToTestPacks') {
     doLast {
         def jar = tasks.named('jar', Jar).get().archiveFile.get().asFile
         def packs = [
-            file("${System.getProperty('user.home')}/curseforge/minecraft/Instances/dead air tests/mods"),
             file("${System.getProperty('user.home')}/curseforge/minecraft/Instances/C.Ideas/mods")
         ]
         packs.each { dest ->

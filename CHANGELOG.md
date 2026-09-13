@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0
+
+Added:
+Lobby API (`EslLobby` / `EslLobbyManager` / `EslLobbyEvent`) for reusable server-side party sessions (no packets or GUI).
+
 ## 1.0.1
 
 Update by: Extra_Special_K
