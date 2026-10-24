@@ -22,11 +22,7 @@ tasks.named('jar', Jar).configure {
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
-    enable {
-        version = project.neo_version
-        // Vineflower emits a protected override of public Named.contents() and javac rejects the Minecraft sources.
-        disableRecompilation = true
-    }
+    version = project.neo_version
     runs {
         client {
             client()
