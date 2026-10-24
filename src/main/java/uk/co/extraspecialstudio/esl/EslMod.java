@@ -3,6 +3,7 @@ package uk.co.extraspecialstudio.esl;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.fml.common.Mod;
 import org.slf4j.Logger;
+import uk.co.extraspecialstudio.esl.forceload.EslForceLoadRegistry;
 import uk.co.extraspecialstudio.esl.lobby.EslLobbyManager;
 import uk.co.extraspecialstudio.esl.wave.EslWaveManager;
 
@@ -18,6 +19,7 @@ public final class EslMod {
     public EslMod() {
         EslLobbyManager.init();
         EslWaveManager.init();
+        EslForceLoadRegistry.init();
         LOGGER.info("ES Library (ESL) {} loaded", MOD_ID);
     }
 }
