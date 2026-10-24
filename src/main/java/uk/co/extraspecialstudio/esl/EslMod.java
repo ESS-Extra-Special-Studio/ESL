@@ -1,8 +1,8 @@
 package uk.co.extraspecialstudio.esl;
 
-import com.mojang.logging.LogUtils;
 import net.minecraftforge.fml.common.Mod;
-import org.slf4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import uk.co.extraspecialstudio.esl.forceload.EslForceLoadRegistry;
 import uk.co.extraspecialstudio.esl.lobby.EslLobbyManager;
 import uk.co.extraspecialstudio.esl.wave.EslWaveManager;
@@ -14,7 +14,7 @@ import uk.co.extraspecialstudio.esl.wave.EslWaveManager;
 @Mod(EslMod.MOD_ID)
 public final class EslMod {
     public static final String MOD_ID = "extraspeciallib";
-    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger();
 
     public EslMod() {
         EslLobbyManager.init();

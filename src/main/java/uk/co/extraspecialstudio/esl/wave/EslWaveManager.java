@@ -1,13 +1,13 @@
 package uk.co.extraspecialstudio.esl.wave;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.Level;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import uk.co.extraspecialstudio.esl.EslMod;
 
@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class EslWaveManager {
 
-    private static final Map<ResourceKey<Level>, List<EslWaveController>> CONTROLLERS = new ConcurrentHashMap<>();
+    private static final Map<RegistryKey<World>, List<EslWaveController>> CONTROLLERS = new ConcurrentHashMap<>();
     private static boolean registered = false;
 
     private EslWaveManager() {}
@@ -44,8 +44,8 @@ public final class EslWaveManager {
      * @param player   the player who triggered this (nullable; used for aggro targeting callbacks)
      * @return the running controller
      */
-    public static EslWaveController start(ServerLevel level, BlockPos center,
-                                           EslWaveSequence sequence, @Nullable ServerPlayer player) {
+    public static EslWaveController start(ServerWorld level, BlockPos center,
+                                           EslWaveSequence sequence, @Nullable ServerPlayerEntity player) {
         init();
         EslWaveController controller = new EslWaveController(level, center, sequence, player);
         CONTROLLERS.computeIfAbsent(level.dimension(), k -> new ArrayList<>()).add(controller);
@@ -70,7 +70,7 @@ public final class EslWaveManager {
     }
 
     /** All active controllers in a specific dimension. */
-    public static List<EslWaveController> activeControllersIn(ResourceKey<Level> dimension) {
+    public static List<EslWaveController> activeControllersIn(RegistryKey<World> dimension) {
         List<EslWaveController> list = CONTROLLERS.get(dimension);
         if (list == null) return Collections.emptyList();
         List<EslWaveController> result = new ArrayList<>();
@@ -115,7 +115,7 @@ public final class EslWaveManager {
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
-        for (Map.Entry<ResourceKey<Level>, List<EslWaveController>> entry : CONTROLLERS.entrySet()) {
+        for (Map.Entry<RegistryKey<World>, List<EslWaveController>> entry : CONTROLLERS.entrySet()) {
             Iterator<EslWaveController> it = entry.getValue().iterator();
             while (it.hasNext()) {
                 EslWaveController c = it.next();
@@ -130,9 +130,10 @@ public final class EslWaveManager {
     }
 
     @SubscribeEvent
-    public static void onWorldUnload(LevelEvent.Unload event) {
-        if (!(event.getLevel() instanceof ServerLevel serverLevel)) return;
-        ResourceKey<Level> dim = serverLevel.dimension();
+    public static void onWorldUnload(WorldEvent.Unload event) {
+        if (!(event.getWorld() instanceof ServerWorld)) return;
+        ServerWorld serverLevel = (ServerWorld) event.getWorld();
+        RegistryKey<World> dim = serverLevel.dimension();
         List<EslWaveController> list = CONTROLLERS.remove(dim);
         if (list != null) {
             for (EslWaveController c : list) {

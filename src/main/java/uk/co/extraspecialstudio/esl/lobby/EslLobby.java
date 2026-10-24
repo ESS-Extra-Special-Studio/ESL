@@ -1,9 +1,9 @@
 package uk.co.extraspecialstudio.esl.lobby;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 
 import javax.annotation.Nullable;
@@ -29,7 +29,7 @@ public final class EslLobby {
 
     private final UUID id = UUID.randomUUID();
     private final UUID hostUuid;
-    private final ServerLevel level;
+    private final ServerWorld level;
     private final BlockPos anchor;
     private final int maxSize;
     private final Map<UUID, EslLobbyMember> members = new LinkedHashMap<>();
@@ -37,7 +37,7 @@ public final class EslLobby {
     private State state = State.OPEN;
     private int inviteTimeoutTicks = DEFAULT_INVITE_TIMEOUT_TICKS;
 
-    EslLobby(ServerLevel level, BlockPos anchor, UUID hostUuid, String hostDisplayName, int maxSize) {
+    EslLobby(ServerWorld level, BlockPos anchor, UUID hostUuid, String hostDisplayName, int maxSize) {
         if (maxSize < 1) throw new IllegalArgumentException("maxSize must be >= 1");
         this.level = Objects.requireNonNull(level, "level");
         this.anchor = Objects.requireNonNull(anchor, "anchor").immutable();
@@ -49,8 +49,8 @@ public final class EslLobby {
 
     public UUID id() { return id; }
     public UUID hostUuid() { return hostUuid; }
-    public ServerLevel level() { return level; }
-    public ResourceKey<Level> dimension() { return level.dimension(); }
+    public ServerWorld level() { return level; }
+    public RegistryKey<World> dimension() { return level.dimension(); }
     public BlockPos anchor() { return anchor; }
     public int maxSize() { return maxSize; }
     public State state() { return state; }

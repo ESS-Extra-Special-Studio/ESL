@@ -1,15 +1,15 @@
 package uk.co.extraspecialstudio.esl.lobby;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import uk.co.extraspecialstudio.esl.EslMod;
 
 import javax.annotation.Nullable;
@@ -45,7 +45,7 @@ public final class EslLobbyManager {
      * @param hostDisplayName host name for member list
      * @param maxSize         max members including host (must be >= 1)
      */
-    public static EslLobby create(ServerLevel level, BlockPos anchor,
+    public static EslLobby create(ServerWorld level, BlockPos anchor,
                                   UUID hostUuid, String hostDisplayName, int maxSize) {
         init();
         EslLobby lobby = new EslLobby(level, anchor, hostUuid, hostDisplayName, maxSize);
@@ -71,7 +71,7 @@ public final class EslLobbyManager {
     }
 
     /** All non-closed lobbies in a dimension. */
-    public static List<EslLobby> activeIn(ResourceKey<Level> dimension) {
+    public static List<EslLobby> activeIn(RegistryKey<World> dimension) {
         List<EslLobby> result = new ArrayList<>();
         for (EslLobby lobby : LOBBIES.values()) {
             if (lobby.state() != EslLobby.State.CLOSED && lobby.dimension().equals(dimension)) {
@@ -109,7 +109,7 @@ public final class EslLobbyManager {
                 it.remove();
                 continue;
             }
-            ServerLevel level = server.getLevel(lobby.dimension());
+            ServerWorld level = server.getLevel(lobby.dimension());
             if (level != null) {
                 lobby.tickInviteTimeouts(level.getGameTime());
             }
@@ -117,9 +117,10 @@ public final class EslLobbyManager {
     }
 
     @SubscribeEvent
-    public static void onWorldUnload(LevelEvent.Unload event) {
-        if (!(event.getLevel() instanceof ServerLevel serverLevel)) return;
-        ResourceKey<Level> dim = serverLevel.dimension();
+    public static void onWorldUnload(WorldEvent.Unload event) {
+        if (!(event.getWorld() instanceof ServerWorld)) return;
+        ServerWorld serverLevel = (ServerWorld) event.getWorld();
+        RegistryKey<World> dim = serverLevel.dimension();
         for (EslLobby lobby : new ArrayList<>(LOBBIES.values())) {
             if (lobby.dimension().equals(dim)) {
                 lobby.onWorldUnload();

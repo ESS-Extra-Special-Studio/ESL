@@ -1,10 +1,10 @@
 package uk.co.extraspecialstudio.esl.forceload;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.world.level.Level;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 
@@ -15,11 +15,11 @@ import javax.annotation.Nullable;
 public final class EslForceLoadSite {
     public final String modId;
     public final String siteId;
-    public final ResourceKey<Level> dimension;
+    public final RegistryKey<World> dimension;
     public final int chunkX;
     public final int chunkZ;
 
-    public EslForceLoadSite(String modId, String siteId, ResourceKey<Level> dimension, int chunkX, int chunkZ) {
+    public EslForceLoadSite(String modId, String siteId, RegistryKey<World> dimension, int chunkX, int chunkZ) {
         this.modId = modId;
         this.siteId = siteId;
         this.dimension = dimension;
@@ -31,8 +31,8 @@ public final class EslForceLoadSite {
         return modId + "|" + siteId;
     }
 
-    public CompoundTag save() {
-        CompoundTag tag = new CompoundTag();
+    public CompoundNBT save() {
+        CompoundNBT tag = new CompoundNBT();
         tag.putString("modId", modId);
         tag.putString("siteId", siteId);
         tag.putString("dim", dimension.location().toString());
@@ -42,13 +42,13 @@ public final class EslForceLoadSite {
     }
 
     @Nullable
-    public static EslForceLoadSite load(CompoundTag tag) {
+    public static EslForceLoadSite load(CompoundNBT tag) {
         if (tag == null || !tag.contains("modId") || !tag.contains("siteId") || !tag.contains("dim")) {
             return null;
         }
         ResourceLocation dimId = ResourceLocation.tryParse(tag.getString("dim"));
         if (dimId == null) return null;
-        ResourceKey<Level> dim = ResourceKey.create(Registries.DIMENSION, dimId);
+        RegistryKey<World> dim = RegistryKey.create(Registry.DIMENSION_REGISTRY, dimId);
         return new EslForceLoadSite(tag.getString("modId"), tag.getString("siteId"), dim,
             tag.getInt("cx"), tag.getInt("cz"));
     }

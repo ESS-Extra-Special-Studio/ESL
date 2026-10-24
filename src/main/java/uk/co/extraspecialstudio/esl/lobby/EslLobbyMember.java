@@ -1,5 +1,7 @@
 package uk.co.extraspecialstudio.esl.lobby;
 
+import uk.co.extraspecialstudio.esl.util.EslStrings;
+
 import java.util.Objects;
 import java.util.UUID;
 
@@ -26,7 +28,7 @@ public final class EslLobbyMember {
     public long invitedAtGameTime() { return invitedAtGameTime; }
 
     public void setDisplayName(String displayName) {
-        if (displayName != null && !displayName.isBlank()) {
+        if (displayName != null && !EslStrings.isBlank(displayName)) {
             this.displayName = displayName;
         }
     }

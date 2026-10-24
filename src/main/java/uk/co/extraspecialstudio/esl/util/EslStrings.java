@@ -9,7 +9,11 @@ public final class EslStrings {
     }
 
     public static boolean isBlank(String s) {
-        return s == null || s.isBlank();
+        if (s == null) return true;
+        for (int i = 0; i < s.length(); i++) {
+            if (!Character.isWhitespace(s.charAt(i))) return false;
+        }
+        return true;
     }
 
     public static String nullToEmpty(String s) {

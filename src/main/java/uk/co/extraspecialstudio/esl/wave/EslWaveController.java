@@ -1,13 +1,13 @@
 package uk.co.extraspecialstudio.esl.wave;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.SpawnReason;
+import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.common.MinecraftForge;
 
 import javax.annotation.Nullable;
@@ -28,10 +28,10 @@ public final class EslWaveController {
     private static final int COMPLETION_DEBOUNCE_TICKS = 60;    // 3 seconds between completion checks
 
     private final UUID controllerId = UUID.randomUUID();
-    private final ServerLevel level;
+    private final ServerWorld level;
     private final BlockPos center;
     private final EslWaveSequence sequence;
-    private final @Nullable ServerPlayer triggeringPlayer;
+    private final @Nullable ServerPlayerEntity triggeringPlayer;
 
     private State state = State.IDLE;
     private int currentWaveIndex = -1;
@@ -47,8 +47,8 @@ public final class EslWaveController {
     // Flattened spawn list for the current wave
     private final List<SpawnJob> currentSpawnJobs = new ArrayList<>();
 
-    EslWaveController(ServerLevel level, BlockPos center, EslWaveSequence sequence,
-                      @Nullable ServerPlayer triggeringPlayer) {
+    EslWaveController(ServerWorld level, BlockPos center, EslWaveSequence sequence,
+                      @Nullable ServerPlayerEntity triggeringPlayer) {
         this.level = level;
         this.center = center;
         this.sequence = sequence;
@@ -56,13 +56,13 @@ public final class EslWaveController {
     }
 
     public UUID id() { return controllerId; }
-    public ServerLevel level() { return level; }
+    public ServerWorld level() { return level; }
     public BlockPos center() { return center; }
     public EslWaveSequence sequence() { return sequence; }
     public State state() { return state; }
     public int currentWaveIndex() { return currentWaveIndex; }
     public int totalWaves() { return sequence.totalWaves(); }
-    public @Nullable ServerPlayer triggeringPlayer() { return triggeringPlayer; }
+    public @Nullable ServerPlayerEntity triggeringPlayer() { return triggeringPlayer; }
 
     /** Number of tracked entities still alive in the current wave. */
     public int remainingEnemies() {
@@ -91,9 +91,14 @@ public final class EslWaveController {
     /** Called every server tick by {@link EslWaveManager}. */
     void tick() {
         switch (state) {
-            case WAVE_ACTIVE -> tickWaveActive();
-            case BETWEEN_WAVES -> tickBetweenWaves();
-            default -> {}
+            case WAVE_ACTIVE:
+                tickWaveActive();
+                break;
+            case BETWEEN_WAVES:
+                tickBetweenWaves();
+                break;
+            default:
+                break;
         }
     }
 
@@ -124,7 +129,7 @@ public final class EslWaveController {
         // Spawn queued mobs
         if (spawnQueueIndex < currentSpawnJobs.size()) {
             SpawnJob job = currentSpawnJobs.get(spawnQueueIndex);
-            if (spawnDelayCounter >= job.delayTicks) {
+            if (spawnDelayCounter >= job.delayTicks()) {
                 spawnMob(job);
                 spawnQueueIndex++;
                 spawnDelayCounter = 0;
@@ -223,13 +228,13 @@ public final class EslWaveController {
     }
 
     private void spawnMob(SpawnJob job) {
-        EslSpawnEntry entry = job.entry;
-        Mob mob;
+        EslSpawnEntry entry = job.entry();
+        MobEntity mob;
         if (entry.factory() != null) {
             mob = entry.factory().get();
             if (mob == null) return;
         } else if (entry.entityType() != null) {
-            mob = entry.entityType().create(level);
+            mob = (MobEntity) entry.entityType().create(level);
             if (mob == null) return;
         } else {
             return;
@@ -238,7 +243,7 @@ public final class EslWaveController {
         BlockPos spawnPos = findRingSpawnPos(entry.radiusMin(), entry.radiusMax());
         mob.moveTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5,
                    level.random.nextFloat() * 360f, 0f);
-        mob.finalizeSpawn(level, level.getCurrentDifficultyAt(spawnPos), MobSpawnType.MOB_SUMMONED, null, null);
+        mob.finalizeSpawn(level, level.getCurrentDifficultyAt(spawnPos), SpawnReason.MOB_SUMMONED, null, null);
 
         if (entry.postSpawnModifier() != null) {
             entry.postSpawnModifier().accept(mob);
@@ -255,7 +260,7 @@ public final class EslWaveController {
         double dist = minR + level.random.nextDouble() * (maxR - minR);
         int x = center.getX() + (int)(Math.cos(angle) * dist);
         int z = center.getZ() + (int)(Math.sin(angle) * dist);
-        int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+        int y = level.getHeight(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
         return new BlockPos(x, y, z);
     }
 
@@ -265,9 +270,9 @@ public final class EslWaveController {
         for (UUID uuid : trackedEntities) {
             if (deadEntities.contains(uuid)) continue;
             Entity entity = level.getEntity(uuid);
-            if (entity == null || !entity.isAlive() || entity.isRemoved()) {
+            if (entity == null || !entity.isAlive()) {
                 deadEntities.add(uuid);
-                Mob mob = (entity instanceof Mob m) ? m : null;
+                MobEntity mob = (entity instanceof MobEntity) ? (MobEntity) entity : null;
                 int remaining = remainingEnemies();
                 MinecraftForge.EVENT_BUS.post(new EslWaveEvent.EntityKilled(createContext(),
                         mob, remaining));
@@ -280,7 +285,7 @@ public final class EslWaveController {
             if (deadEntities.contains(uuid)) continue;
             Entity entity = level.getEntity(uuid);
             if (entity != null && entity.isAlive()) {
-                entity.discard();
+                entity.remove();
             }
         }
         trackedEntities.clear();
@@ -295,5 +300,16 @@ public final class EslWaveController {
 
     // ---- Internal ----
 
-    private record SpawnJob(EslSpawnEntry entry, int delayTicks) {}
+    private static final class SpawnJob {
+        private final EslSpawnEntry entry;
+        private final int delayTicks;
+
+        private SpawnJob(EslSpawnEntry entry, int delayTicks) {
+            this.entry = entry;
+            this.delayTicks = delayTicks;
+        }
+
+        private EslSpawnEntry entry() { return entry; }
+        private int delayTicks() { return delayTicks; }
+    }
 }

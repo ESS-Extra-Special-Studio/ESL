@@ -1,5 +1,7 @@
 package uk.co.extraspecialstudio.esl.registry;
 
+import uk.co.extraspecialstudio.esl.util.EslStrings;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
@@ -14,7 +16,7 @@ public final class EslRegistry<T> {
     private final ConcurrentHashMap<String, T> entries = new ConcurrentHashMap<>();
 
     public void register(String id, T value) {
-        if (id == null || id.isBlank()) {
+        if (id == null || EslStrings.isBlank(id)) {
             throw new IllegalArgumentException("id must be non-blank");
         }
         if (value == null) {
@@ -27,7 +29,7 @@ public final class EslRegistry<T> {
     }
 
     public void registerOrReplace(String id, T value) {
-        if (id == null || id.isBlank()) {
+        if (id == null || EslStrings.isBlank(id)) {
             throw new IllegalArgumentException("id must be non-blank");
         }
         if (value == null) {

@@ -1,11 +1,10 @@
 package uk.co.extraspecialstudio.esl.forceload;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.storage.WorldSavedData;
 import uk.co.extraspecialstudio.esl.EslMod;
 
 import javax.annotation.Nullable;
@@ -15,23 +14,29 @@ import java.util.Map;
 
 /** Persists {@link EslForceLoadSite} entries on the overworld data storage. */
 @SuppressWarnings("null")
-public final class EslForceLoadStorage extends SavedData {
+public final class EslForceLoadStorage extends WorldSavedData {
     private static final String DATA_NAME = EslMod.MOD_ID + "_forceload";
-    private final Map<String, EslForceLoadSite> sites = new LinkedHashMap<>();
+    /** 1.16.5 has no {@code Tag.TAG_COMPOUND} constant; compound lists use id 10. */
+    private static final int TAG_COMPOUND = 10;
+    private final Map<String, EslForceLoadSite> sites = new LinkedHashMap<String, EslForceLoadSite>();
 
-    public static EslForceLoadStorage load(CompoundTag nbt) {
-        EslForceLoadStorage data = new EslForceLoadStorage();
-        ListTag list = nbt.getList("sites", Tag.TAG_COMPOUND);
-        for (int i = 0; i < list.size(); i++) {
-            EslForceLoadSite site = EslForceLoadSite.load(list.getCompound(i));
-            if (site != null) data.sites.put(site.key(), site);
-        }
-        return data;
+    public EslForceLoadStorage() {
+        super(DATA_NAME);
     }
 
     @Override
-    public CompoundTag save(CompoundTag nbt) {
-        ListTag list = new ListTag();
+    public void load(CompoundNBT nbt) {
+        sites.clear();
+        ListNBT list = nbt.getList("sites", TAG_COMPOUND);
+        for (int i = 0; i < list.size(); i++) {
+            EslForceLoadSite site = EslForceLoadSite.load(list.getCompound(i));
+            if (site != null) sites.put(site.key(), site);
+        }
+    }
+
+    @Override
+    public CompoundNBT save(CompoundNBT nbt) {
+        ListNBT list = new ListNBT();
         for (EslForceLoadSite site : sites.values()) {
             list.add(site.save());
         }
@@ -61,7 +66,7 @@ public final class EslForceLoadStorage extends SavedData {
     }
 
     public static EslForceLoadStorage get(MinecraftServer server) {
-        ServerLevel overworld = server.overworld();
-        return overworld.getDataStorage().computeIfAbsent(EslForceLoadStorage::load, EslForceLoadStorage::new, DATA_NAME);
+        ServerWorld overworld = server.overworld();
+        return overworld.getDataStorage().computeIfAbsent(EslForceLoadStorage::new, DATA_NAME);
     }
 }

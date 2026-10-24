@@ -1,6 +1,6 @@
 package uk.co.extraspecialstudio.esl.wave;
 
-import net.minecraft.world.entity.Mob;
+import net.minecraft.entity.MobEntity;
 import net.minecraftforge.eventbus.api.Event;
 
 /**
@@ -70,28 +70,28 @@ public abstract class EslWaveEvent extends Event {
 
     /** Fired for each entity spawned by the wave controller. The mob can be modified. */
     public static class EntitySpawned extends EslWaveEvent {
-        private final Mob entity;
+        private final MobEntity entity;
 
-        public EntitySpawned(EslWaveContext ctx, Mob entity) {
+        public EntitySpawned(EslWaveContext ctx, MobEntity entity) {
             super(ctx);
             this.entity = entity;
         }
 
-        public Mob entity() { return entity; }
+        public MobEntity entity() { return entity; }
     }
 
     /** Fired when a tracked wave entity dies. */
     public static class EntityKilled extends EslWaveEvent {
-        private final Mob entity;
+        private final MobEntity entity;
         private final int remaining;
 
-        public EntityKilled(EslWaveContext ctx, Mob entity, int remaining) {
+        public EntityKilled(EslWaveContext ctx, MobEntity entity, int remaining) {
             super(ctx);
             this.entity = entity;
             this.remaining = remaining;
         }
 
-        public Mob entity() { return entity; }
+        public MobEntity entity() { return entity; }
         public int remaining() { return remaining; }
     }
 }

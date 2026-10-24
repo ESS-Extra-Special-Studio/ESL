@@ -1,21 +1,22 @@
 package uk.co.extraspecialstudio.esl.forceload;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
+import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import uk.co.extraspecialstudio.esl.EslMod;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,13 +38,13 @@ public final class EslForceLoadRegistry {
 
     /** Force-load the chunk containing {@code pos}. Replaces any prior site with the same modId+siteId. */
     public static void set(MinecraftServer server, String modId, String siteId,
-                           ResourceKey<Level> dimension, BlockPos pos) {
+                           RegistryKey<World> dimension, BlockPos pos) {
         ChunkPos chunk = new ChunkPos(pos);
         set(server, modId, siteId, dimension, chunk.x, chunk.z);
     }
 
     public static void set(MinecraftServer server, String modId, String siteId,
-                           ResourceKey<Level> dimension, int chunkX, int chunkZ) {
+                           RegistryKey<World> dimension, int chunkX, int chunkZ) {
         init();
         EslForceLoadStorage storage = EslForceLoadStorage.get(server);
         EslForceLoadSite previous = storage.get(modId, siteId);
@@ -69,7 +70,7 @@ public final class EslForceLoadRegistry {
     }
 
     public static Collection<EslForceLoadSite> all(MinecraftServer server) {
-        return List.copyOf(EslForceLoadStorage.get(server).all());
+        return Collections.unmodifiableList(new ArrayList<EslForceLoadSite>(EslForceLoadStorage.get(server).all()));
     }
 
     public static Collection<EslForceLoadSite> allForMod(MinecraftServer server, String modId) {
@@ -81,7 +82,7 @@ public final class EslForceLoadRegistry {
     }
 
     private static void applyForced(MinecraftServer server, EslForceLoadSite site, boolean forced) {
-        ServerLevel level = server.getLevel(site.dimension);
+        ServerWorld level = server.getLevel(site.dimension);
         if (level == null) return;
         level.setChunkForced(site.chunkX, site.chunkZ, forced);
     }
@@ -100,13 +101,13 @@ public final class EslForceLoadRegistry {
     }
 
     @SubscribeEvent
-    public static void onServerStarted(ServerStartedEvent event) {
+    public static void onServerStarted(FMLServerStartedEvent event) {
         reapplyAll(event.getServer());
     }
 
     @SubscribeEvent
-    public static void onServerStopping(ServerStoppingEvent event) {
-        // Clear live tickets; SavedData keeps sites for next boot.
+    public static void onServerStopping(FMLServerStoppingEvent event) {
+        // Clear live tickets; WorldSavedData keeps sites for next boot.
         releaseAllTickets(event.getServer());
     }
 
