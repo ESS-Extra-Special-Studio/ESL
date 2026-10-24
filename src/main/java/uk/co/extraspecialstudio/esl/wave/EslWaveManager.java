@@ -41,7 +41,7 @@ public final class EslWaveManager {
         CONTROLLERS.computeIfAbsent(level.dimension(), k -> new ArrayList<>()).add(controller);
         controller.start();
         EslMod.LOGGER.info("[ESL] Wave sequence started at {} in {} ({} waves)",
-                center, level.dimension().location(), sequence.totalWaves());
+                center, level.dimension().identifier(), sequence.totalWaves());
         return controller;
     }
 

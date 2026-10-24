@@ -38,8 +38,8 @@ public final class EslForceLoadRegistry {
     /** Force-load the chunk containing {@code pos}. Replaces any prior site with the same modId+siteId. */
     public static void set(MinecraftServer server, String modId, String siteId,
                            ResourceKey<Level> dimension, BlockPos pos) {
-        ChunkPos chunk = new ChunkPos(pos);
-        set(server, modId, siteId, dimension, chunk.x, chunk.z);
+        ChunkPos chunk = ChunkPos.containing(pos);
+        set(server, modId, siteId, dimension, chunk.x(), chunk.z());
     }
 
     public static void set(MinecraftServer server, String modId, String siteId,

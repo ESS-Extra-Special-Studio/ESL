@@ -6,9 +6,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.EventHooks;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -215,16 +216,16 @@ public final class EslWaveController {
             mob = entry.factory().get();
             if (mob == null) return;
         } else if (entry.entityType() != null) {
-            mob = entry.entityType().create(level);
+            mob = entry.entityType().create(level, EntitySpawnReason.MOB_SUMMONED);
             if (mob == null) return;
         } else {
             return;
         }
 
         BlockPos spawnPos = findRingSpawnPos(entry.radiusMin(), entry.radiusMax());
-        mob.moveTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5,
-                   level.random.nextFloat() * 360f, 0f);
-        mob.finalizeSpawn(level, level.getCurrentDifficultyAt(spawnPos), MobSpawnType.MOB_SUMMONED, null);
+        mob.snapTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5,
+                   level.getRandom().nextFloat() * 360f, 0f);
+        EventHooks.finalizeMobSpawn(mob, level, level.getCurrentDifficultyAt(spawnPos), EntitySpawnReason.MOB_SUMMONED, null);
 
         if (entry.postSpawnModifier() != null) {
             entry.postSpawnModifier().accept(mob);
@@ -237,8 +238,8 @@ public final class EslWaveController {
     }
 
     private BlockPos findRingSpawnPos(double minR, double maxR) {
-        double angle = level.random.nextDouble() * Math.PI * 2;
-        double dist = minR + level.random.nextDouble() * (maxR - minR);
+        double angle = level.getRandom().nextDouble() * Math.PI * 2;
+        double dist = minR + level.getRandom().nextDouble() * (maxR - minR);
         int x = center.getX() + (int)(Math.cos(angle) * dist);
         int z = center.getZ() + (int)(Math.sin(angle) * dist);
         int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
