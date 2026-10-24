@@ -3,7 +3,7 @@ package uk.co.extraspecialstudio.esl.forceload;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
@@ -48,7 +48,7 @@ public final class EslForceLoadSite {
         }
         ResourceLocation dimId = ResourceLocation.tryParse(tag.getString("dim"));
         if (dimId == null) return null;
-        ResourceKey<Level> dim = ResourceKey.create(Registries.DIMENSION, dimId);
+        ResourceKey<Level> dim = ResourceKey.create(Registry.DIMENSION_REGISTRY, dimId);
         return new EslForceLoadSite(tag.getString("modId"), tag.getString("siteId"), dim,
             tag.getInt("cx"), tag.getInt("cz"));
     }

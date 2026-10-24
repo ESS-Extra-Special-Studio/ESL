@@ -223,7 +223,7 @@ tasks.register('copyToTestPacks') {
     }
 }
 
-tasks.named('build').configure { finalizedBy 'copyToTestPacks' }
+// 1.18.2 jars must not replace the 1.20.1 ESL jar in the Forge test packs.
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation

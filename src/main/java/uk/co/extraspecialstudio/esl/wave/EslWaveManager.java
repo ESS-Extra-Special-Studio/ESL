@@ -7,7 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import uk.co.extraspecialstudio.esl.EslMod;
 
@@ -130,8 +130,8 @@ public final class EslWaveManager {
     }
 
     @SubscribeEvent
-    public static void onWorldUnload(LevelEvent.Unload event) {
-        if (!(event.getLevel() instanceof ServerLevel serverLevel)) return;
+    public static void onWorldUnload(WorldEvent.Unload event) {
+        if (!(event.getWorld() instanceof ServerLevel serverLevel)) return;
         ResourceKey<Level> dim = serverLevel.dimension();
         List<EslWaveController> list = CONTROLLERS.remove(dim);
         if (list != null) {

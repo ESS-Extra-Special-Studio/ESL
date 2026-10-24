@@ -124,7 +124,7 @@ public final class EslWaveController {
         // Spawn queued mobs
         if (spawnQueueIndex < currentSpawnJobs.size()) {
             SpawnJob job = currentSpawnJobs.get(spawnQueueIndex);
-            if (spawnDelayCounter >= job.delayTicks) {
+            if (spawnDelayCounter >= job.delayTicks()) {
                 spawnMob(job);
                 spawnQueueIndex++;
                 spawnDelayCounter = 0;
@@ -223,7 +223,7 @@ public final class EslWaveController {
     }
 
     private void spawnMob(SpawnJob job) {
-        EslSpawnEntry entry = job.entry;
+        EslSpawnEntry entry = job.entry();
         Mob mob;
         if (entry.factory() != null) {
             mob = entry.factory().get();
