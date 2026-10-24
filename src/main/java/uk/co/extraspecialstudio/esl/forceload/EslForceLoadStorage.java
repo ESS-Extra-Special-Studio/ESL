@@ -1,43 +1,45 @@
 package uk.co.extraspecialstudio.esl.forceload;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import uk.co.extraspecialstudio.esl.EslMod;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /** Persists {@link EslForceLoadSite} entries on the overworld data storage. */
 @SuppressWarnings("null")
 public final class EslForceLoadStorage extends SavedData {
     private static final String DATA_NAME = EslMod.MOD_ID + "_forceload";
+
+    public static final Codec<EslForceLoadStorage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            EslForceLoadSite.CODEC.listOf().optionalFieldOf("sites", List.of()).forGetter(EslForceLoadStorage::sitesList)
+    ).apply(instance, EslForceLoadStorage::new));
+
+    public static final SavedDataType<EslForceLoadStorage> TYPE = new SavedDataType<>(
+            DATA_NAME,
+            EslForceLoadStorage::new,
+            CODEC);
+
     private final Map<String, EslForceLoadSite> sites = new LinkedHashMap<>();
 
-    public static EslForceLoadStorage load(CompoundTag nbt, HolderLookup.Provider provider) {
-        EslForceLoadStorage data = new EslForceLoadStorage();
-        ListTag list = nbt.getList("sites", Tag.TAG_COMPOUND);
-        for (int i = 0; i < list.size(); i++) {
-            EslForceLoadSite site = EslForceLoadSite.load(list.getCompound(i));
-            if (site != null) data.sites.put(site.key(), site);
+    public EslForceLoadStorage() {}
+
+    public EslForceLoadStorage(List<EslForceLoadSite> loaded) {
+        for (EslForceLoadSite site : loaded) {
+            if (site != null) sites.put(site.key(), site);
         }
-        return data;
     }
 
-    @Override
-    public CompoundTag save(CompoundTag nbt, HolderLookup.Provider provider) {
-        ListTag list = new ListTag();
-        for (EslForceLoadSite site : sites.values()) {
-            list.add(site.save());
-        }
-        nbt.put("sites", list);
-        return nbt;
+    private List<EslForceLoadSite> sitesList() {
+        return List.copyOf(sites.values());
     }
 
     public Collection<EslForceLoadSite> all() {
@@ -63,7 +65,6 @@ public final class EslForceLoadStorage extends SavedData {
 
     public static EslForceLoadStorage get(MinecraftServer server) {
         ServerLevel overworld = server.overworld();
-        return overworld.getDataStorage().computeIfAbsent(
-            new SavedData.Factory<>(EslForceLoadStorage::new, EslForceLoadStorage::load), DATA_NAME);
+        return overworld.getDataStorage().computeIfAbsent(TYPE);
     }
 }
