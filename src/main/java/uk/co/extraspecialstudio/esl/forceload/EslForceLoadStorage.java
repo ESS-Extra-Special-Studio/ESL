@@ -5,6 +5,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
 import uk.co.extraspecialstudio.esl.EslMod;
 
@@ -62,6 +63,8 @@ public final class EslForceLoadStorage extends SavedData {
 
     public static EslForceLoadStorage get(MinecraftServer server) {
         ServerLevel overworld = server.overworld();
-        return overworld.getDataStorage().computeIfAbsent(EslForceLoadStorage::load, EslForceLoadStorage::new, DATA_NAME);
+        return overworld.getDataStorage().computeIfAbsent(
+            new SavedData.Factory<>(EslForceLoadStorage::new, EslForceLoadStorage::load, DataFixTypes.SAVED_DATA_FORCED_CHUNKS),
+            DATA_NAME);
     }
 }
