@@ -1,5 +1,10 @@
 # Changelog
 
+## ES Library 1.2.0
+
+Added:
+Force-load API (`EslForceLoadRegistry`) so a mod can keep one chunk loaded per site id. The site is saved with the world and reapplied when the server starts. No GUI or packets.
+
 ## 1.1.0
 
 Added:
