@@ -51,7 +51,7 @@ public final class EslLobbyManager {
         LOBBIES.put(lobby.id(), lobby);
         NeoForge.EVENT_BUS.post(new EslLobbyEvent.Created(lobby));
         EslMod.LOGGER.info("[ESL] Lobby {} created by {} at {} in {}",
-                lobby.id(), hostUuid, anchor, level.dimension().location());
+                lobby.id(), hostUuid, anchor, level.dimension().identifier());
         return lobby;
     }
 
