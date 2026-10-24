@@ -75,6 +75,10 @@ neoForge.ideSyncTask generateModMetadata
 tasks.register('copyToNeoForgeTestPack') {
     dependsOn 'jar'
     doLast {
+        if (minecraft_version != '1.21.1') {
+            println "Skipping NeoForge 1.21.1 test-pack copy for Minecraft ${minecraft_version}"
+            return
+        }
         def jar = tasks.named('jar', Jar).get().archiveFile.get().asFile
         def dest = file("${System.getProperty('user.home')}/curseforge/minecraft/Instances/NEOFORGE 1.21.1 TESTS/mods")
         if (dest.exists()) {
